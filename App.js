@@ -9,7 +9,6 @@ import {
   Modal,
   StyleSheet,
   Text,
-  TextInput,
   TouchableHighlight,
   ScrollView,
   View,
@@ -63,41 +62,8 @@ export default class App extends Component {
     }
   }
 
-  serviceCheckOnPress() {
-    wifi.isEnabled(isEnabled => {
-      this.setState({ isWifiNetworkEnabled: isEnabled });
-      console.log(isEnabled);
-    });
-  }
-
-  serviceSetEnableOnPress(enabled) {
-    wifi.setEnabled(enabled);
-  }
-
-  connectOnPress() {
-    wifi.findAndConnect(this.state.ssid, this.state.pass, found => {
-      this.setState({ ssidExist: found });
-    });
-  }
-
-  disconnectOnPress() {
-    wifi.disconnect();
-  }
-
-  getSSIDOnPress() {
-    wifi.getSSID(ssid => {
-      this.setState({ currentSSID: ssid });
-    });
-  }
-
-  getBSSIDOnPress() {
-    wifi.getBSSID(bssid => {
-      this.setState({ currentBSSID: bssid });
-    });
-  }
-
   getWifiNetworksOnPress() {
-    wifi.loadWifiList(
+    wifi.reScanAndLoadWifiList(
       wifiStringList => {
         console.log(wifiStringList);
         var wifiArray = JSON.parse(wifiStringList);
@@ -110,24 +76,6 @@ export default class App extends Component {
         console.log(error);
       }
     );
-  }
-
-  connectionStatusOnPress() {
-    wifi.connectionStatus(isConnected => {
-      this.setState({ status: isConnected });
-    });
-  }
-
-  levelOnPress() {
-    wifi.getCurrentSignalStrength(level => {
-      this.setState({ level: level });
-    });
-  }
-
-  ipOnPress() {
-    wifi.getIP(ip => {
-      this.setState({ ip: ip });
-    });
   }
 
   renderModal() {
@@ -154,119 +102,6 @@ export default class App extends Component {
       <ScrollView>
         <View style={styles.container}>
           <Text style={styles.title}>Explorer App</Text>
-          {/* <View style={styles.instructionsContainer}>
-            <Text style={styles.instructionsTitle}>
-              Check wifi service status
-            </Text>
-            <View style={styles.row}>
-              <TouchableHighlight
-                style={styles.button}
-                onPress={this.serviceCheckOnPress.bind(this)}
-              >
-                <Text style={styles.buttonText}>Check</Text>
-              </TouchableHighlight>
-              <Text style={styles.answer}>
-                {this.state.isWifiNetworkEnabled == null
-                  ? ""
-                  : this.state.isWifiNetworkEnabled
-                  ? "Wifi service enabled :)"
-                  : "Wifi service disabled :("}
-              </Text>
-            </View>
-          </View> */}
-          {/* <View style={styles.instructionsContainer}>
-            <Text style={styles.instructionsTitle}>
-              Enable/Disable wifi network
-            </Text>
-            <View style={styles.row}>
-              <TouchableHighlight
-                style={styles.button}
-                onPress={this.serviceSetEnableOnPress.bind(this, true)}
-              >
-                <Text style={styles.buttonText}>Enable</Text>
-              </TouchableHighlight>
-              <TouchableHighlight
-                style={styles.button}
-                onPress={this.serviceSetEnableOnPress.bind(this, false)}
-              >
-                <Text style={styles.buttonText}>Disable</Text>
-              </TouchableHighlight>
-            </View>
-          </View> */}
-          {/* <View style={styles.instructionsContainer}>
-            <Text style={styles.instructionsTitle}>
-              Sign device into a specific network:
-            </Text>
-            <Text style={styles.instructions}>SSID</Text>
-            <TextInput
-              style={styles.textInput}
-              underlineColorAndroid="transparent"
-              onChangeText={event => (this.state.ssid = event)}
-              value={this.state.ssid}
-              placeholder={"ssid"}
-            />
-            <Text style={styles.instructions}>Password</Text>
-            <TextInput
-              style={styles.textInput}
-              secureTextEntry={true}
-              underlineColorAndroid="transparent"
-              onChangeText={event => (this.state.pass = event)}
-              value={this.state.pass}
-              placeholder={"password"}
-            />
-            <View style={styles.row}>
-              <TouchableHighlight
-                style={styles.button}
-                onPress={this.connectOnPress.bind(this)}
-              >
-                <Text style={styles.buttonText}>Connect</Text>
-              </TouchableHighlight>
-              <Text style={styles.answer}>
-                {this.state.ssidExist == null
-                  ? ""
-                  : this.state.ssidExist
-                  ? "Network in range :)"
-                  : "Network out of range :("}
-              </Text>
-            </View>
-          </View> */}
-          {/* <View style={styles.instructionsContainer}>
-            <Text style={styles.instructionsTitle}>
-              Disconnect current wifi network
-            </Text>
-            <View style={styles.row}>
-              <TouchableHighlight
-                style={styles.button}
-                onPress={this.disconnectOnPress.bind(this)}
-              >
-                <Text style={styles.buttonText}>Disconnect</Text>
-              </TouchableHighlight>
-            </View>
-          </View> */}
-          {/* <View style={styles.instructionsContainer}>
-            <Text style={styles.instructionsTitle}>Current SSID</Text>
-            <View style={styles.row}>
-              <TouchableHighlight
-                style={styles.button}
-                onPress={this.getSSIDOnPress.bind(this)}
-              >
-                <Text style={styles.buttonText}>Get SSID</Text>
-              </TouchableHighlight>
-              <Text style={styles.answer}>{this.state.currentSSID + ""}</Text>
-            </View>
-          </View> */}
-          {/* <View style={styles.instructionsContainer}>
-            <Text style={styles.instructionsTitle}>Current BSSID</Text>
-            <View style={styles.row}>
-              <TouchableHighlight
-                style={styles.button}
-                onPress={this.getBSSIDOnPress.bind(this)}
-              >
-                <Text style={styles.buttonText}>Get BSSID</Text>
-              </TouchableHighlight>
-              <Text style={styles.answer}>{this.state.currentBSSID + ""}</Text>
-            </View>
-          </View> */}
           <View style={styles.instructionsContainer}>
             <Text style={styles.instructionsTitle}>
               Get all wifi networks in range
@@ -278,54 +113,6 @@ export default class App extends Component {
               <Text style={styles.buttonText}>Available WIFI Networks</Text>
             </TouchableHighlight>
           </View>
-          {/* <View style={styles.instructionsContainer}>
-            <Text style={styles.instructionsTitle}>Connection status</Text>
-            <View style={styles.row}>
-              <TouchableHighlight
-                style={styles.bigButton}
-                onPress={this.connectionStatusOnPress.bind(this)}
-              >
-                <Text style={styles.buttonText}>Get connection status</Text>
-              </TouchableHighlight>
-              <Text style={styles.answer}>
-                {this.state.status == null
-                  ? ""
-                  : this.state.status
-                  ? "You're connected :)"
-                  : "You're not connected :("}
-              </Text>
-            </View>
-          </View> */}
-          {/* <View style={styles.instructionsContainer}>
-            <Text style={styles.instructionsTitle}>
-              Get current wifi signal strength
-            </Text>
-            <View style={styles.row}>
-              <TouchableHighlight
-                style={styles.bigButton}
-                onPress={this.levelOnPress.bind(this)}
-              >
-                <Text style={styles.buttonText}>Get signal strength</Text>
-              </TouchableHighlight>
-              <Text style={styles.answer}>
-                {this.state.level == null ? "" : this.state.level}
-              </Text>
-            </View>
-          </View> */}
-          {/* <View style={styles.instructionsContainer}>
-            <Text style={styles.instructionsTitle}>Get current IP</Text>
-            <View style={styles.row}>
-              <TouchableHighlight
-                style={styles.button}
-                onPress={this.ipOnPress.bind(this)}
-              >
-                <Text style={styles.buttonText}>Get IP</Text>
-              </TouchableHighlight>
-              <Text style={styles.answer}>
-                {this.state.ip == null ? "" : this.state.ip}
-              </Text>
-            </View>
-          </View> */}
         </View>
         <Modal visible={this.state.modalVisible} onRequestClose={() => {}}>
           <TouchableHighlight
