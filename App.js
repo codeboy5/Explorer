@@ -14,8 +14,15 @@ import {
   View,
   PermissionsAndroid
 } from "react-native";
-
 import wifi from "react-native-android-wifi";
+import {
+  magnetometer,
+  setUpdateIntervalForType,
+  SensorTypes
+} from "react-native-sensors";
+// import console = require("console");
+
+setUpdateIntervalForType(SensorTypes.magnetometer, 1000);
 
 // type Props = {};
 export default class App extends Component {
@@ -32,12 +39,13 @@ export default class App extends Component {
       modalVisible: false,
       status: null,
       level: null,
-      ip: null
+      ip: null,
+      magnetometer: null,
+      magModalVisible: false
     };
   }
 
   componentDidMount() {
-    console.log(wifi);
     this.askForUserPermissions();
   }
 
@@ -78,6 +86,15 @@ export default class App extends Component {
     );
   }
 
+  getMagnetometerValue = () => {
+    magnetometer.subscribe(({ x, y, z, timestamp }) => {
+      console.log({ x, y, z, timestamp });
+      this.setState({
+        magModalVisible: true
+      });
+    });
+  };
+
   renderModal() {
     var wifiListComponents = [];
     for (w in this.state.wifiList) {
@@ -97,6 +114,14 @@ export default class App extends Component {
     return wifiListComponents;
   }
 
+  renderMagModel() {
+    return (
+      <View style={styles.instructionsContainer}>
+        <Text style={styles.instructionsTitle}>Magnetometer</Text>
+      </View>
+    );
+  }
+
   render() {
     return (
       <ScrollView>
@@ -113,6 +138,19 @@ export default class App extends Component {
               <Text style={styles.buttonText}>Available WIFI Networks</Text>
             </TouchableHighlight>
           </View>
+          <View style={styles.instructionsContainer}>
+            <Text style={styles.instructionsTitle}>
+              Get Magnetometer Values
+            </Text>
+            <TouchableHighlight
+              style={styles.bigButton}
+              onPress={this.getMagnetometerValue}
+            >
+              <Text style={styles.buttonText}>
+                Available Magnetometer Values
+              </Text>
+            </TouchableHighlight>
+          </View>
         </View>
         <Modal visible={this.state.modalVisible} onRequestClose={() => {}}>
           <TouchableHighlight
@@ -122,6 +160,15 @@ export default class App extends Component {
             <Text style={styles.buttonText}>Close</Text>
           </TouchableHighlight>
           <ScrollView>{this.renderModal()}</ScrollView>
+        </Modal>
+        <Modal visible={this.state.magModalVisible} onRequestClose={() => {}}>
+          <TouchableHighlight
+            style={styles.button}
+            onPress={() => this.setState({ magModalVisible: false })}
+          >
+            <Text style={styles.buttonText}>Close</Text>
+          </TouchableHighlight>
+          <ScrollView>{this.renderMagModel()}</ScrollView>
         </Modal>
       </ScrollView>
     );
