@@ -12,7 +12,8 @@
     "react-native": "0.59.9",
     "react-native-android-wifi": "0.0.41",
     "react-native-fs": "^2.13.3",
-    "react-native-sensors": "^5.2.0"
+    "react-native-sensors": "^5.2.0",
+    "uuid": "^3.3.2"
   },
   "devDependencies": {
     "@babel/core": "^7.4.5",

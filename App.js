@@ -12,7 +12,8 @@ import {
   TouchableHighlight,
   ScrollView,
   View,
-  PermissionsAndroid
+  PermissionsAndroid,
+  TextInput
 } from "react-native";
 import wifi from "react-native-android-wifi";
 import {
@@ -20,10 +21,12 @@ import {
   setUpdateIntervalForType,
   SensorTypes
 } from "react-native-sensors";
+var RNFS = require("react-native-fs");
+// var path = RNFS.DocumentDirectoryPath + "/wifi.txt";
+// var path1 = RNFS.DocumentDirectoryPath + "/magR.txt";
 
-setUpdateIntervalForType(SensorTypes.magnetometer, 500);
+setUpdateIntervalForType(SensorTypes.magnetometer, 1000);
 
-// type Props = {};
 export default class App extends Component {
   constructor(props) {
     super(props);
@@ -40,7 +43,8 @@ export default class App extends Component {
       level: null,
       ip: null,
       magnetometer: null,
-      magModalVisible: false
+      magModalVisible: false,
+      fileName: ""
     };
     this.subscription = null;
     this.handler = "Hello";
@@ -88,8 +92,8 @@ export default class App extends Component {
     keys = Object.keys(data[0]);
 
     result = "";
-    result += keys.join(columnDelimiter);
-    result += lineDelimiter;
+    // result += keys.join(columnDelimiter);
+    // result += lineDelimiter;
 
     data.forEach(function(item) {
       ctr = 0;
@@ -105,33 +109,6 @@ export default class App extends Component {
     return result;
   };
 
-  writeToFile = () => {
-    var csv = convertArrayOfObjectsToCSV({
-      data: this.state.wifiList
-    });
-  };
-
-  // async askForUserPermissions() {
-  //   try {
-  //     const granted = await PermissionsAndroid.request(
-  //       PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-  //       {
-  //         title: "Wifi networks",
-  //         message: "We need your permission in order to find wifi networks"
-  //       }
-  //     );
-  //     if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-  //       console.log("Thank you for your permission! :)");
-  //     } else {
-  //       console.log(
-  //         "You will not able to retrieve wifi available networks list"
-  //       );
-  //     }
-  //   } catch (err) {
-  //     console.warn(err);
-  //   }
-  // }
-
   getWifiNetworksOnPress = () => {
     wifi.reScanAndLoadWifiList(
       wifiStringList => {
@@ -139,9 +116,20 @@ export default class App extends Component {
         var wifiArray = JSON.parse(wifiStringList);
         console.log(wifiArray);
         this.setState({
-          wifiList: wifiArray,
-          modalVisible: false
+          wifiList: wifiArray
         });
+        const csv = this.convertArrayOfObjectsToCSV({ data: wifiArray });
+        console.log(csv);
+        // var path = RNFS.DocumentDirectoryPath + "/wifi.txt";
+        let path =
+          RNFS.DocumentDirectoryPath + `/${this.state.fileName}Wifi.txt`;
+        RNFS.appendFile(path, csv, "utf8")
+          .then(success => {
+            console.log("FILE WRITTEN!" + path);
+          })
+          .catch(err => {
+            console.log(err.message);
+          });
       },
       error => {
         console.log(error);
@@ -150,77 +138,58 @@ export default class App extends Component {
   };
 
   timerWifiNetWork = () => {
-    this.handler = setInterval(this.getWifiNetworksOnPress, 500);
+    this.setState({
+      modalVisible: true
+    });
+    this.handler = setInterval(this.getWifiNetworksOnPress, 10000);
   };
 
   getMagnetometerValue = () => {
+    this.setState({
+      magModalVisible: true
+    });
     this.subscription = magnetometer.subscribe(({ x, y, z, timestamp }) => {
-      // setTimeout(() => {
-      //   subscription.unsubscribe();
-      // }, 3000);
-      console.log({ x, y, z, timestamp });
+      // console.log({ x, y, z, timestamp });
+      var magnetodata = JSON.stringify({ x, y, z, timestamp });
+      magnetodata += "\n";
+      console.log(magnetodata);
+      let path1 = RNFS.DocumentDirectoryPath + `/${this.state.fileName}Mag.txt`;
+      RNFS.appendFile(path1, magnetodata, "utf8")
+        .then(success => {
+          console.log("FILE WRITTEN FOR MAGNETO! " + path1);
+        })
+        .catch(err => {
+          console.log(err.message);
+        });
     });
   };
-  // magnetometer.subscribe(({ x, y, z, timestamp }) => {
-  //   console.log({ x, y, z, timestamp });
-  //   this.setState({
-  //     magModalVisible: true
-  //   });
-  // });
-
-  // renderModal() {
-  //   var wifiListComponents = [];
-  //   for (w in this.state.wifiList) {
-  //     wifiListComponents.push(
-  //       <View key={w} style={styles.instructionsContainer}>
-  //         <Text style={styles.instructionsTitle}>
-  //           {this.state.wifiList[w].SSID}
-  //         </Text>
-  //         <Text>BSSID: {this.state.wifiList[w].BSSID}</Text>
-  //         <Text>Capabilities: {this.state.wifiList[w].capabilities}</Text>
-  //         <Text>Frequency: {this.state.wifiList[w].frequency}</Text>
-  //         <Text>Level: {this.state.wifiList[w].level}</Text>
-  //         <Text>Timestamp: {this.state.wifiList[w].timestamp}</Text>
-  //       </View>
-  //     );
-  //   }
-  //   return wifiListComponents;
-  // }
-
-  // renderMagModel() {
-  //   return (
-  //     <View style={styles.instructionsContainer}>
-  //       <Text style={styles.instructionsTitle}>Magnetometer</Text>
-  //     </View>
-  //   );
-  // }
 
   render() {
-    const renderModal = () => {
-      var wifiListComponents = [];
-      for (w in this.state.wifiList) {
-        wifiListComponents.push(
-          <View key={w} style={styles.instructionsContainer}>
-            <Text style={styles.instructionsTitle}>
-              {this.state.wifiList[w].SSID}
-            </Text>
-            <Text>BSSID: {this.state.wifiList[w].BSSID}</Text>
-            <Text>Capabilities: {this.state.wifiList[w].capabilities}</Text>
-            <Text>Frequency: {this.state.wifiList[w].frequency}</Text>
-            <Text>Level: {this.state.wifiList[w].level}</Text>
-            <Text>Timestamp: {this.state.wifiList[w].timestamp}</Text>
-          </View>
-        );
-      }
-      return wifiListComponents;
-    };
-    const renderMagModel = () => {
-      return (
-        <View style={styles.instructionsContainer}>
-          <Text style={styles.instructionsTitle}>Magnetometer</Text>
-        </View>
-      );
-    };
+    // const renderModal = () => {
+    //   var wifiListComponents = [];
+    //   for (w in this.state.wifiList) {
+    //     wifiListComponents.push(
+    //       <View key={w} style={styles.instructionsContainer}>
+    //         <Text style={styles.instructionsTitle}>
+    //           {this.state.wifiList[w].SSID}
+    //         </Text>
+    //         <Text>BSSID: {this.state.wifiList[w].BSSID}</Text>
+    //         <Text>Capabilities: {this.state.wifiList[w].capabilities}</Text>
+    //         <Text>Frequency: {this.state.wifiList[w].frequency}</Text>
+    //         <Text>Level: {this.state.wifiList[w].level}</Text>
+    //         <Text>Timestamp: {this.state.wifiList[w].timestamp}</Text>
+    //       </View>
+    //     );
+    //   }
+    //   return wifiListComponents;
+    // };
+    // const renderMagModel = () => {
+    //   return (
+    //     <View style={styles.instructionsContainer}>
+    //       <Text style={styles.instructionsTitle}>Magnetometer</Text>
+    //     </View>
+    //   );
+    // };
     return (
       <ScrollView>
         <View style={styles.container}>
@@ -230,12 +199,17 @@ export default class App extends Component {
             <Text style={styles.instructionsTitle}>
               Get all wifi networks in range
             </Text>
+
             <TouchableHighlight
               style={styles.bigButton}
               // onPress={this.getWifiNetworksOnPress}
               onPress={this.timerWifiNetWork}
             >
-              <Text style={styles.buttonText}>Available WIFI Networks</Text>
+              <Text style={styles.buttonText}>
+                {this.state.modalVisible
+                  ? "Recording Going On"
+                  : "Start Recording"}
+              </Text>
             </TouchableHighlight>
           </View>
           <View style={styles.instructionsContainer}>
@@ -244,7 +218,10 @@ export default class App extends Component {
             </Text>
             <TouchableHighlight
               style={styles.bigButton}
-              onPress={() => clearInterval(this.handler)}
+              onPress={() => {
+                clearInterval(this.handler);
+                this.setState({ modalVisible: false });
+              }}
             >
               <Text style={styles.buttonText}>End Wifi Readings</Text>
             </TouchableHighlight>
@@ -259,7 +236,9 @@ export default class App extends Component {
               onPress={this.getMagnetometerValue}
             >
               <Text style={styles.buttonText}>
-                Available Magnetometer Values
+                {this.state.magModalVisible
+                  ? "Recording Data"
+                  : "Start Recording"}
               </Text>
             </TouchableHighlight>
           </View>
@@ -270,7 +249,12 @@ export default class App extends Component {
             </Text>
             <TouchableHighlight
               style={styles.bigButton}
-              onPress={() => this.subscription.unsubscribe()}
+              onPress={() => {
+                this.subscription.unsubscribe();
+                this.setState({
+                  magModalVisible: false
+                });
+              }}
             >
               <Text style={styles.buttonText}>
                 End The Reading of Magnetometer
@@ -278,7 +262,16 @@ export default class App extends Component {
             </TouchableHighlight>
           </View>
         </View>
-        <Modal visible={this.state.modalVisible} onRequestClose={() => {}}>
+        {/* Text Input Field for The Name */}
+        <View style={styles.instructionsContainer}>
+          <Text style={styles.instructionsTitle}>Enter The File Name</Text>
+          <TextInput
+            onChangeText={text => this.setState({ fileName: text })}
+            value={this.state.fileName}
+            style={styles.input}
+          />
+        </View>
+        {/* <Modal visible={this.state.modalVisible} onRequestClose={() => {}}>
           <TouchableHighlight
             style={styles.button}
             onPress={() => this.setState({ modalVisible: false })}
@@ -295,7 +288,7 @@ export default class App extends Component {
             <Text style={styles.buttonText}>Close</Text>
           </TouchableHighlight>
           <ScrollView>{renderMagModel()}</ScrollView>
-        </Modal>
+        </Modal> */}
       </ScrollView>
     );
   }
@@ -321,7 +314,7 @@ const styles = StyleSheet.create({
     borderBottomColor: "#CCCCCC"
   },
   instructionsTitle: {
-    marginBottom: 10,
+    marginBottom: 5,
     color: "#333333"
   },
   instructions: {
@@ -346,5 +339,17 @@ const styles = StyleSheet.create({
   },
   answer: {
     marginTop: 5
+  },
+  inputContainer: {
+    alignItems: "center"
+  },
+  input: {
+    width: "100%",
+    borderWidth: 1,
+    borderColor: "#eee",
+    padding: 5,
+    marginTop: 8,
+    marginBottom: 8,
+    alignItems: "center"
   }
 });
