@@ -22,7 +22,7 @@ import {
   SensorTypes
 } from "react-native-sensors";
 var RNFS = require("react-native-fs");
-// var path = RNFS.DocumentDirectoryPath + "/wifi.txt";
+// var path = RNFS.ExternalStorageDirectoryPath + "/wifi.txt";
 // var path1 = RNFS.DocumentDirectoryPath + "/magR.txt";
 
 setUpdateIntervalForType(SensorTypes.magnetometer, 1000);
@@ -122,7 +122,7 @@ export default class App extends Component {
         console.log(csv);
         // var path = RNFS.DocumentDirectoryPath + "/wifi.txt";
         let path =
-          RNFS.DocumentDirectoryPath + `/${this.state.fileName}Wifi.txt`;
+          RNFS.ExternalStorageDirectoryPath + `/${this.state.fileName}Wifi.txt`;
         RNFS.appendFile(path, csv, "utf8")
           .then(success => {
             console.log("FILE WRITTEN!" + path);
@@ -149,11 +149,13 @@ export default class App extends Component {
       magModalVisible: true
     });
     this.subscription = magnetometer.subscribe(({ x, y, z, timestamp }) => {
+      let magnitude = Math.sqrt(x * x + y * y + z * z);
       // console.log({ x, y, z, timestamp });
-      var magnetodata = JSON.stringify({ x, y, z, timestamp });
+      var magnetodata = JSON.stringify({ x, y, z, timestamp, magnitude });
       magnetodata += "\n";
       console.log(magnetodata);
-      let path1 = RNFS.DocumentDirectoryPath + `/${this.state.fileName}Mag.txt`;
+      let path1 =
+        RNFS.ExternalStorageDirectoryPath + `/${this.state.fileName}Mag.txt`;
       RNFS.appendFile(path1, magnetodata, "utf8")
         .then(success => {
           console.log("FILE WRITTEN FOR MAGNETO! " + path1);
